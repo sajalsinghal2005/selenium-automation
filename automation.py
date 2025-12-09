@@ -1,31 +1,45 @@
-
-
 from selenium import webdriver
 from selenium.webdriver.common.by import By
-from selenium.webdriver.common.keys import Keys
+import pandas as pd
 import time
 
+def scrape_quotes():
 
-driver = webdriver.Chrome()
+   
+    options = webdriver.ChromeOptions()
+    options.add_argument("--headless")     # Browser hidden mode
+    options.add_argument("--no-sandbox")
+    options.add_argument("--disable-dev-shm-usage")
 
-driver.get("https://www.google.com")
-driver.maximize_window()
-
-
-time.sleep(2)
-
-
-search_box = driver.find_element(By.NAME, "q")
-search_box.send_keys("Selenium Python tutorial")
-search_box.send_keys(Keys.RETURN)
-
-time.sleep(3)
+    driver = webdriver.Chrome(options=options)
 
 
-results = driver.find_elements(By.CSS_SELECTOR, "h3")
+    url = "https://quotes.toscrape.com/"
+    driver.get(url)
+    time.sleep(2)
 
-for r in results:
-    print(r.text)
+    quotes_elements = driver.find_elements(By.CLASS_NAME, "text")
+    authors_elements = driver.find_elements(By.CLASS_NAME, "author")
+
+    quotes = []
+    authors = []
+
+    for q, a in zip(quotes_elements, authors_elements):
+        quotes.append(q.text)
+        authors.append(a.text)
+
+    
+    df = pd.DataFrame({
+        "Quote": quotes,
+        "Author": authors
+    })
+    df.to_csv("output.csv", index=False)
 
 
-driver.quit()
+    driver.quit()
+
+    print("Scraping Successful! Data saved in output.csv")
+
+
+if __name__ == "__main__":
+    scrape_quotes()
